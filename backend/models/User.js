@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Le mot de passe est obligatoire.'],
     minlength: [6, 'Le mot de passe doit contenir au moins 6 caractères.']
   },
-    role: { type: String, enum: ["reader", "author", "admin"], default: "reader" },
+    role: { type: String, enum: ["user", "author", "admin"], default: "user" },
   },
   { timestamps: true }
 );
