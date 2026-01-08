@@ -1,10 +1,10 @@
+import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import { Link } from "react-router-dom";
 
 export default function Home() {
   return (
     <>
-      <Navbar />
 
       {/* HERO */}
       <section className="bg-dark text-light py-5">
@@ -73,20 +73,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="bg-primary text-white py-5">
-        <div className="container text-center">
-          <h2 className="fw-bold mb-3">
-            Apprends, partage et évolue
-          </h2>
-          <p className="fs-5 mb-4">
-            Crée un compte et participe à une communauté tech passionnée.
-          </p>
-          <Link to="/register" className="btn btn-light btn-lg">
-            Créer un compte gratuitement
-          </Link>
-        </div>
-      </section>
     </>
   );
 }

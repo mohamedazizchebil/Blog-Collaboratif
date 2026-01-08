@@ -5,6 +5,7 @@ import {
   updateCategory,
   deleteCategory
 } from "../../api/categoryApi";
+import AdminNavbar from "./AdminNavbar";
 
 export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState([]);
@@ -78,6 +79,8 @@ export default function AdminCategoriesPage() {
   if (err) return <div className="alert alert-danger">{err}</div>;
 
   return (
+    <>
+   
     <div className="container py-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -193,5 +196,6 @@ export default function AdminCategoriesPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

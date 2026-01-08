@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { loginApi } from "../api/auth.api";
+import { useAuth } from "../context/AuthContext"; // 🔹 important
 
 export default function Login() {
   const navigate = useNavigate();
+  const { login } = useAuth(); // ↩ récupère la fonction login du contexte
+
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -24,17 +27,38 @@ export default function Login() {
 
     try {
       setLoading(true);
-      const res = await loginApi(form);
 
-      const token = res.data?.token;
-      if (!token) return setError("Token introuvable dans la réponse.");
+      // selon comment tu as codé loginApi :
+      // - soit loginApi retourne res (axios)
+      // - soit loginApi retourne res.data
+      // Je pars sur la version la plus fréquente = axios → res.data
+      const res = await loginApi(form);     // si loginApi = api.post(...)
 
-      localStorage.setItem("token", token);
-      if (res.data?.user) {
-        localStorage.setItem("user", JSON.stringify(res.data.user));
+      const data = res.data ?? res;         // compat : res.data ou data direct
+      const token = data?.token;
+      const user = data?.user;
+
+      if (!token || !user) {
+        setError("Réponse de connexion invalide (token ou user manquant).");
+        return;
       }
 
-      navigate("/");
+      // 🔹 pour ton AuthContext existant :
+      // login(token, role)
+      login(token, user.role);
+
+      // 🔹 tu stockes aussi l'objet user pour l'utiliser ailleurs (profil, etc.)
+      localStorage.setItem("user", JSON.stringify(user));
+
+      // 🔹 Redirection en fonction du rôle
+      if (user.role === "admin") {
+        navigate("/users");
+      } else if (user.role === "author") {
+        navigate("/author/posts");
+      } else {
+        // role = "user" ou autre
+        navigate("/user/posts");
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Erreur de connexion.");
     } finally {
