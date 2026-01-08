@@ -97,7 +97,11 @@ exports.deleteUser = async (req, res) => {
 
 exports.update = async (req, res) => {
   try {
-    const userId = req.user?.id || req.userId; 
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: "Non authentifié" });
+    }
+
     const { username, email, bio, avatar } = req.body;
 
     const updateUserFields = {};
@@ -110,7 +114,9 @@ exports.update = async (req, res) => {
       select: "-password",
     });
 
-    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
 
     const updateProfileFields = {};
     if (bio !== undefined) updateProfileFields.bio = bio;
@@ -122,18 +128,23 @@ exports.update = async (req, res) => {
       { new: true, upsert: true, runValidators: true }
     );
 
-    res.status(200).json({ message: "Profil mis à jour ", user, profile });
+    return res.status(200).json({ message: "Profil mis à jour", user, profile });
   } catch (error) {
     if (error.code === 11000) {
       return res.status(400).json({ message: "Cet email est déjà utilisé" });
     }
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((val) => val.message);
-      return res.status(400).json({ message: "Erreur de validation", errors: messages });
+      return res
+        .status(400)
+        .json({ message: "Erreur de validation", errors: messages });
     }
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Erreur serveur", error: error.message });
   }
 };
+
 
 
 exports.getAllUsers = async (req, res) => {
@@ -148,20 +159,28 @@ exports.getAllUsers = async (req, res) => {
 // ➤ Afficher un utilisateur par ID (ADMIN ou lui-même)
 exports.getUserById = async (req, res) => {
   try {
-    
+    // Si admin appelle /api/users/:id → on prend req.params.id
+    // Sinon /api/users/me → on prend req.user.id (via middleware protect)
+    const requestedId = req.params.id || req.user?.id;
 
-    const currentUserId =  req.userId;
+    if (!requestedId) {
+      return res.status(400).json({ message: "ID utilisateur manquant" });
+    }
 
+    const user = await User.findById(requestedId).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
 
-    const user = await User.findById(currentUserId).select("-password");
-    if (!user) return res.status(404).json({ message: "Utilisateur non trouvé" });
+    const profile = await Profile.findOne({ user: requestedId });
 
-    const profile = await Profile.findOne({ user: user._id });
-
-    res.status(200).json({ user, profile });
+    return res.status(200).json({ user, profile });
   } catch (error) {
-    res.status(500).json({ message: "Erreur serveur", error: error.message });
+    return res
+      .status(500)
+      .json({ message: "Erreur serveur", error: error.message });
   }
 };
+
 
 

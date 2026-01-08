@@ -7,8 +7,8 @@ exports.getCommentsByPost = async (req, res) => {
       post: req.params.postId,
       isHidden: false,
     })
-      .populate("user", "username role")
-      .sort({ createdAt: -1 });
+        .populate("user", "username email name")
+  .sort({ createdAt: -1 });
 
     res.status(200).json(comments);
   } catch (error) {

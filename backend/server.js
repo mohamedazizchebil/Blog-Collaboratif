@@ -6,7 +6,7 @@ const postRoutes = require("./routes/post.routes");
 const categoryRoutes = require("./routes/category.routes");
 const tagRoutes = require("./routes/tag.routes");
 const commentRoutes = require("./routes/comment.routes");
-
+const cors = require("cors");
 
 
 const app = express();
@@ -21,6 +21,9 @@ app.get("/", (req, res) => {
   res.send("API du blog collaboratif fonctionne !");
 }
 );
+
+app.use(cors({ origin: "http://localhost:5173" }));
+
 app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api/categories", categoryRoutes);

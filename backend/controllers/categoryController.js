@@ -58,17 +58,32 @@ exports.updateCategory = async (req, res) => {
 
 exports.deleteCategory = async (req, res) => {
   try {
-    if (!req.user || req.user.role !== "admin") return res.status(403).json({ message: "Accès interdit" });
+    if (!req.user || req.user.role !== "admin") {
+      return res.status(403).json({ message: "Accès interdit" });
+    }
 
     const category = await Category.findById(req.params.id);
-    if (!category) return res.status(404).json({ message: "Catégorie non trouvée" });
+    if (!category) {
+      return res.status(404).json({ message: "Catégorie non trouvée" });
+    }
 
+    // Vérifier si la catégorie est utilisée par des posts
     const postsCount = await Post.countDocuments({ category: category._id });
-    if (postsCount > 0) return res.status(400).json({ message: "Impossible de supprimer une catégorie utilisée par des posts" });
+    if (postsCount > 0) {
+      return res.status(400).json({
+        message: "Impossible de supprimer une catégorie utilisée par des posts",
+      });
+    }
 
-    await category.remove();
-    res.json({ message: "Catégorie supprimée avec succès" });
+    // Suppression propre
+    await Category.findByIdAndDelete(category._id);
+
+    return res.json({ message: "Catégorie supprimée avec succès" });
   } catch (e) {
-    res.status(500).json({ message: "Erreur suppression catégorie", error: e.message });
+    console.error("Erreur suppression catégorie:", e); // <= important en dev
+    return res.status(500).json({
+      message: "Erreur suppression catégorie",
+      error: e.message,
+    });
   }
 };
